@@ -19,7 +19,7 @@ fun main(args: Array<String>) {
 	//puzzle.forEach({ println(it) })
 
 	val stack = Stack<Location>()
-	stack.push(puzzle[0][8])
+	stack.push(puzzle[0][0])
 	println(stack[0].coord)
 	solve(puzzle, stack)
 
@@ -59,14 +59,50 @@ fun createMatrix(file: File) : ArrayList<List<Location>>{
 fun solve(matrix: ArrayList<List<Location>>, path: Stack<Location>){
 
 	// get the range
-	val move = path.peek().move
+	val move = path.peek().range
 
-	// get the possible locations
-	val destinations = getDestinations(matrix, move)
+	// get the possible destinations reacheable from the location on top of the stack
+	val destinations = getDestinations(matrix, path.peek())
+
+	destinations.forEach({println(it.range)})
 }
 
+/* get a stack of all possible destinations from the current cell based on the range of movement from
+  the cell itself */
+fun getDestinations(matrix: ArrayList<List<Location>>, currentLocation: Location): Stack<Location>{
 
-fun getDestinations(matrix: ArrayList<List<Location>>, move: Int){
+	val destinations = Stack<Location>()
 
+	val row = currentLocation.coord.first
+	val col = currentLocation.coord.second
+	val range = currentLocation.range;
+
+	val right = getLocationIfInRange(row, col + range, matrix)
+	val left = getLocationIfInRange(row, col - range, matrix)
+	val top = getLocationIfInRange(row - range, col, matrix)
+	val bottom = getLocationIfInRange(row + range, col, matrix)
+
+	// ignore null entries
+	destinations.addAll(listOf(right, left, top , bottom).filter({it != null}))
+
+	return destinations
+}
+
+/* return a valid coordinate if in range otherwise a null value */
+fun getLocationIfInRange(row: Int, col: Int, matrix: ArrayList<List<Location>>): Location?{
+
+	val puzzleSize = matrix.count()
+	var location: Location?
+	when{
+		inRange(row, puzzleSize) && inRange(col, puzzleSize) -> location = Location(row, col, matrix[row][col].range)
+		else -> location = null
+	}
+	return location
+}
+
+/* check if the coordinate is in range */
+fun inRange(coord: Int, size: Int): Boolean{
+
+	return coord >= 0 && coord < size
 }
 

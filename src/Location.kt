@@ -1,5 +1,5 @@
-class Location(val row:Int, val col:Int, val move:Int){
+class Location(val row:Int, val col:Int, val range:Int){
 
 	val coord = Pair(row, col)
-	val value = move
+	val value = range
 }
