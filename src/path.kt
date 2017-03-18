@@ -24,7 +24,7 @@ fun main(args: Array<String>) {
 	// solve puzzle...
 }
 
-fun createMatrix(file: File) : ArrayList<List<Int>>{
+fun createMatrix2(file: File) : ArrayList<List<Int>>{
 
 	val matrix = ArrayList<List<Int>>()
 	for (line in file.readLines()){
