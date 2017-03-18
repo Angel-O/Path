@@ -1,4 +1,5 @@
 import java.io.File
+import java.util.Stack
 
 fun main(args: Array<String>) {
 
@@ -16,14 +17,25 @@ fun main(args: Array<String>) {
 	println(file.toString() + " succesfully loaded")
 
 	// create the matrix
+	val matrix = createMatrix(file)
+	// cool! the values will be printed instead of the hash..
+	matrix.forEach({ println(it) })
+
+	// solve puzzle...
+}
+
+fun createMatrix(file: File) : ArrayList<List<Int>>{
+
 	val matrix = ArrayList<List<Int>>()
 	for (line in file.readLines()){
 
 		// split each line and parse each chunk to an int
 		matrix.add(line.split(" ").map{ it.toInt() })
 	}
+	return matrix
+}
 
-	for(line in matrix){
-		println(line) // cool! the values will be printed instead of the hash..
-	}
+fun getMeAStack(): Stack<Int>?{
+
+	return null;
 }
