@@ -58,65 +58,51 @@ fun createMatrix(file: File) : ArrayList<List<Location>>{
 	return matrix
 }
 
-fun solvePuzzle(puzzle: ArrayList<List<Location>>, path: Stack<Location>, fullyExplored: ArrayList<Location>): Boolean{
+/* solves the puzzle */
+fun solvePuzzle(puzzle: ArrayList<List<Location>>, path: Stack<Location>, fullyExplored: ArrayList<Location>){
 
 	when{
-		// done
-		solved(puzzle, path) -> { return true }
 		// if we backtracked all the way back to the initial state, quit
-		//path.isEmpty() -> { println("there is not a solution"); fullyExplored.forEach({print(it.coord)}); return false }
-		path.isEmpty() -> {
-
-			// restart...
-			path.push(Location(0, 0, puzzle[0][0].range))
-			return solvePuzzle(puzzle, path , fullyExplored)
-		}
-
+		path.isEmpty() -> { println("the puzzle cannot be solved") }
+		// it's solved display the path
+		solved(puzzle, path) -> { println(path.map( {it.coord} )) }
+		// otherwise solve the puzzle
 		else -> {
 				// get all possible destinations from the current cell (on top of the path stack)
 				val destinations = getDestinations(puzzle, path.peek(), fullyExplored) //destinations.forEach({println(it.range)})
 				when{
 					// if there is nowhere to go from the current location, backtrack...
 					destinations.isEmpty() -> {
-						fullyExplored.add(path.pop()); // mark the current location as fully explored
-						if (solvePuzzle(puzzle, path, fullyExplored)){
-							path.forEach({println(it.coord)})
-							return true
-						}
+						fullyExplored.add(path.pop()); // mark the current location as fully explored since we can't go anywhere else
+						return solvePuzzle(puzzle, path, fullyExplored)
 					}
-					// otherwise keep exploring
-					else -> {
+					else -> { // otherwise keep exploring
 
-						while(!destinations.isEmpty()){ //&& !fullyExplored.contains(destinations.peek())
-
+						// explore each destination
+						while(!destinations.isEmpty()){
 							val nextRoute = destinations.pop()
-							if (nextRoute.coord == Pair(puzzle.size -1, puzzle.size -1))println("CHECKING: " + nextRoute)
 							if (!path.toList().contains(nextRoute)){
 								// if the location hasn't been explored yet, explore it
 								path.push(nextRoute)
-								println(path.map{it.coord})
-								if (solvePuzzle(puzzle, path, fullyExplored)){
-									path.forEach({println(it.coord)})
-									return true
-								}
+								return solvePuzzle(puzzle, path, fullyExplored)
 							}
 						}
 						// if none of the destinations turned out to be succesfull backtrack...
+						// NOTE: quite curiously if we never return the value of the function
+						// this block of code will add to the fully explored list while the
+						// puzzled is being explored above!!! concurrency for free!!!
 						if(!path.isEmpty()){
 							val explored = path.pop()
 							fullyExplored.add(explored)
-							if(solvePuzzle(puzzle, path, fullyExplored)){
-								path.forEach({println(it.coord)})
-								return true
-							}
+							return solvePuzzle(puzzle, path, fullyExplored)
 						}
 					}
 				}
 			}
 		}
-	return false;
 }
 
+/* flags whether or not the bottom right corner of the puzzle was reached */
 fun solved(matrix: ArrayList<List<Location>>, stack: Stack<Location>): Boolean{
 	return !stack.isEmpty() && stack.peek().coord == Pair(matrix.size - 1, matrix.size - 1)
 }
@@ -128,7 +114,7 @@ fun getDestinations(matrix: ArrayList<List<Location>>, currentLocation: Location
 	val row = currentLocation.coord.first
 	val col = currentLocation.coord.second
 	val range = currentLocation.range;
-	val goalCoord = matrix.size - 1; // minus 1 ????
+	//val goalCoord = matrix.size - 1; // minus 1 ????
 	destinations.addAll(listOf(
 			createLocation(row, col + range, matrix), // right
 			createLocation(row, col - range, matrix), // left
@@ -136,12 +122,8 @@ fun getDestinations(matrix: ArrayList<List<Location>>, currentLocation: Location
 			createLocation(row + range, col, matrix)) // bottom
 			.filter({it != null // ignore out of range locations
 					//&& (it.range != 0 && it.coord != Pair(goalCoord, goalCoord)) // get rid of invalid destinations
-					&& it.range < matrix.size // strictly?????
-					&& !fullyExplored.contains(it)})) // ignore already visited location that lead to nowhere
-
-	if(destinations.toList().filter({it == Location(goalCoord, goalCoord, matrix[goalCoord][goalCoord].range)}).count() > 0){
-		println("END END")
-	}
+					&& it.range < matrix.size // ignore invalid locations that would certainly lead outside the matrix
+					&& !fullyExplored.contains(it)})) // ignore already visited locations leading to nowhere
 
 	return destinations
 }
