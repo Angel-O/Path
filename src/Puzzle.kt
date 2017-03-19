@@ -58,85 +58,67 @@ fun createMatrix(file: File) : ArrayList<List<Location>>{
 	return matrix
 }
 
-fun solvePuzzle(matrix: ArrayList<List<Location>>, path: Stack<Location>, fullyExplored: ArrayList<Location>): Boolean{
+fun solvePuzzle(puzzle: ArrayList<List<Location>>, path: Stack<Location>, fullyExplored: ArrayList<Location>): Boolean{
 
 	when{
 		// done
-		solved(matrix, path) -> { return true }
+		solved(puzzle, path) -> { return true }
 		// if we backtracked all the way back to the initial state, quit
-		path.isEmpty() -> { println("there is not a solution"); return false }
+		//path.isEmpty() -> { println("there is not a solution"); fullyExplored.forEach({print(it.coord)}); return false }
+		path.isEmpty() -> {
+
+			// restart...
+			path.push(Location(0, 0, puzzle[0][0].range))
+			return solvePuzzle(puzzle, path , fullyExplored)
+		}
 
 		else -> {
 				// get all possible destinations from the current cell (on top of the path stack)
-				val destinations = getDestinations(matrix, path.peek(), fullyExplored) //destinations.forEach({println(it.range)})
+				val destinations = getDestinations(puzzle, path.peek(), fullyExplored) //destinations.forEach({println(it.range)})
 				when{
 					// if there is nowhere to go from the current location, backtrack...
 					destinations.isEmpty() -> {
 						fullyExplored.add(path.pop()); // mark the current location as fully explored
-						if (solvePuzzle(matrix, path, fullyExplored)){
-							path.forEach({println(it.coord)});
+						if (solvePuzzle(puzzle, path, fullyExplored)){
+							path.forEach({println(it.coord)})
+							return true
 						}
 					}
-					// if the destination on top of the stack is fully explored, backtrack...
-					fullyExplored.contains(path.peek()) -> {
-						path.pop();
-						if(solvePuzzle(matrix, path, fullyExplored)){ // new one???
-							path.forEach({println(it.coord)});
-						}
-					};
 					// otherwise keep exploring
 					else -> {
-						while(!destinations.isEmpty() && !fullyExplored.contains(destinations.peek())){
+
+						while(!destinations.isEmpty()){ //&& !fullyExplored.contains(destinations.peek())
 
 							val nextRoute = destinations.pop()
+							if (nextRoute.coord == Pair(puzzle.size -1, puzzle.size -1))println("CHECKING: " + nextRoute)
 							if (!path.toList().contains(nextRoute)){
 								// if the location hasn't been explored yet, explore it
 								path.push(nextRoute)
 								println(path.map{it.coord})
-								if (solvePuzzle(matrix, path, fullyExplored)){
-									path.forEach({println(it.coord)});
+								if (solvePuzzle(puzzle, path, fullyExplored)){
+									path.forEach({println(it.coord)})
+									return true
 								}
 							}
-		//					else{
-		//						// otherwise remove it...
-		//						val explored = path.pop()
-		//						fullyExplored.add(explored)
-		//						explore(matrix, path, fullyExplored)
-		//					}
 						}
+						// if none of the destinations turned out to be succesfull backtrack...
 						if(!path.isEmpty()){
 							val explored = path.pop()
 							fullyExplored.add(explored)
-						}
-						if(solvePuzzle(matrix, path, fullyExplored)){
-							path.forEach({println(it.coord)});
+							if(solvePuzzle(puzzle, path, fullyExplored)){
+								path.forEach({println(it.coord)})
+								return true
+							}
 						}
 					}
 				}
-
-
-				// if the destinations stack is empty we have visited all the location
-				// but did not found a good route
-				//path.pop();
-				//if (path.isEmpty()) path.push(matrix[0][0])
-				//explore(matrix, path)
-				// if none of the destinations turned out to be succesfull backtrack...
-				//while(path.peek() != currentLocation){
-//			if(!path.isEmpty()){
-//				path.pop()
-//				explore(matrix, path)
-//			}
-			 // what if I get back to the beginning??
-				//}
-			//path.forEach({println(it.coord)})
-
 			}
 		}
 	return false;
 }
 
 fun solved(matrix: ArrayList<List<Location>>, stack: Stack<Location>): Boolean{
-	return !stack.isEmpty() && stack.peek().coord == Pair(matrix.count() - 1, matrix.count() - 1)
+	return !stack.isEmpty() && stack.peek().coord == Pair(matrix.size - 1, matrix.size - 1)
 }
 
 /* get a stack of all possible destinations from the current cell based on the range of movement from
@@ -146,24 +128,31 @@ fun getDestinations(matrix: ArrayList<List<Location>>, currentLocation: Location
 	val row = currentLocation.coord.first
 	val col = currentLocation.coord.second
 	val range = currentLocation.range;
+	val goalCoord = matrix.size - 1; // minus 1 ????
 	destinations.addAll(listOf(
 			createLocation(row, col + range, matrix), // right
 			createLocation(row, col - range, matrix), // left
 			createLocation(row - range, col, matrix), // top
 			createLocation(row + range, col, matrix)) // bottom
-			.filter({it != null && it.range != 0 // get rid of invalid destinations
-					&& it.range < matrix.count()
+			.filter({it != null // ignore out of range locations
+					//&& (it.range != 0 && it.coord != Pair(goalCoord, goalCoord)) // get rid of invalid destinations
+					&& it.range < matrix.size // strictly?????
 					&& !fullyExplored.contains(it)})) // ignore already visited location that lead to nowhere
+
+	if(destinations.toList().filter({it == Location(goalCoord, goalCoord, matrix[goalCoord][goalCoord].range)}).count() > 0){
+		println("END END")
+	}
+
 	return destinations
 }
 
 /* return a valid coordinate if in range otherwise a null value */
 fun createLocation(row: Int, col: Int, matrix: ArrayList<List<Location>>): Location?{
-	val puzzleSize = matrix.count()
+	val puzzleSize = matrix.size
 	var location: Location?
 	when{
 		inRange(row, puzzleSize)
-		&& inRange(col, puzzleSize) -> location = Location(row, col, matrix[row][col].range)
+		&& inRange(col, puzzleSize) -> { location = Location(row, col, matrix[row][col].range) }
 		else -> location = null
 	}
 	return location
