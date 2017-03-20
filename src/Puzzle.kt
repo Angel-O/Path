@@ -92,7 +92,7 @@ fun exploreAll(puzzle: ArrayList<List<Location>>, path: Stack<Location>, fullyEx
 	}
 }
 
-/* marks the current location and fully explored (dead end) and goes back to the previous one to try alternative routes */
+/* marks the current location as fully explored (dead end) and goes back to the previous one to try alternative routes */
 fun backtrack(puzzle: ArrayList<List<Location>>, path: Stack<Location>, fullyExplored: ArrayList<Location>){
 	// mark the current location (top of the stack) as fully explored since we can't go anywhere else
 	val explored = path.pop()
