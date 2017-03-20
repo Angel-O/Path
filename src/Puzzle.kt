@@ -54,47 +54,48 @@ fun createMatrix(file: File) : ArrayList<List<Location>>{
 
 /* solves the puzzle */
 fun solvePuzzle(puzzle: ArrayList<List<Location>>, path: Stack<Location>, fullyExplored: ArrayList<Location>){
-
 	when{
 		// if we backtracked all the way back to the initial state, quit
 		path.isEmpty() -> { println("The puzzle cannot be solved.") }
 		// if the puzzle is solved display the solution
 		solved(puzzle, path) -> { println("The solution to the puzzle is:\n" + path.map( {it.coord} )) }
-		// otherwise solve it
-		else -> {
-				// get all possible destinations from the current cell (the one on top of the path stack)
-				val destinations = getDestinations(puzzle, path.peek(), fullyExplored)
-				when{
-					// if there is nowhere to go from the current location, backtrack...
-					destinations.isEmpty() -> {
-						// mark the current location (top of the stack) as fully explored since we can't go anywhere else
-						fullyExplored.add(path.pop());
-						return solvePuzzle(puzzle, path, fullyExplored)
-					}
-					else -> { // otherwise keep exploring
+		// otherwise keep exploring
+		else -> exploreAll(puzzle, path, fullyExplored)
+	}
+}
 
-						// explore each destination
-						while(!destinations.isEmpty()){
-							val nextRoute = destinations.pop()
-							if (!path.toList().contains(nextRoute)){
-								// if the location hasn't been explored yet, add it to the path and proceed exploring
-								path.push(nextRoute)
-								return solvePuzzle(puzzle, path, fullyExplored)
-							}
-						}
-						// if none of the destinations turned out to be successful backtrack...
-						// (NOTE: quite curiously if we never return the value of the function
-						// whenever it's called this block of code will add to the fully explored list
-						// while the puzzled is being explored above!!! concurrency for free!!!)
-						if(!path.isEmpty()){
-							val explored = path.pop()
-							fullyExplored.add(explored)
-							return solvePuzzle(puzzle, path, fullyExplored)
-						}
-					}
-				}
-			}
+/* explores all possible destinations from the current location */
+fun exploreAll(puzzle: ArrayList<List<Location>>, path: Stack<Location>, fullyExplored: ArrayList<Location>){
+	// get all possible destinations from the current cell (the one on top of the path stack)
+	val destinations = getDestinations(puzzle, path.peek(), fullyExplored)
+	if(destinations.isEmpty()){
+		// if there is nowhere to go from the current location, backtrack...
+		return backtrack(puzzle, path, fullyExplored)
+	}
+	// explore each destination
+	while(!destinations.isEmpty()){
+		val nextRoute = destinations.pop()
+		if (!path.toList().contains(nextRoute)){
+			// if the location hasn't been explored yet, add it to the path and proceed exploring
+			path.push(nextRoute)
+			return solvePuzzle(puzzle, path, fullyExplored)
 		}
+	}
+	// (NOTE: quite curiously if we never return the value of the function
+	// whenever it's called this block of code will add to the fully explored list
+	// while the puzzled is being explored above!!! concurrency for free!!!)
+	if(!path.isEmpty()){
+		// if none of the destinations turned out to be successful backtrack...
+		backtrack(puzzle, path, fullyExplored)
+	}
+}
+
+/* marks the current location ans fully explored (dead end) and goes back to the previous one to try alternative routes */
+fun backtrack(puzzle: ArrayList<List<Location>>, path: Stack<Location>, fullyExplored: ArrayList<Location>){
+	// mark the current location (top of the stack) as fully explored since we can't go anywhere else
+	val explored = path.pop()
+	fullyExplored.add(explored)
+	solvePuzzle(puzzle, path, fullyExplored)
 }
 
 /* checks whether or not the bottom right corner of the puzzle has been reached and therefore the puzzle solved */
