@@ -39,7 +39,7 @@ fun chooseFile(): File? {
 }
 
 /* creates the matrix representing the puzzle to be solved */
-fun createMatrix(file: File) : ArrayList<List<Location>>{
+fun createMatrix(file: File): ArrayList<List<Location>>{
 	val matrix = ArrayList<List<Location>>()
 	// initial coordinates
 	var row: Int = 0; var col: Int = 0
@@ -68,29 +68,31 @@ fun solvePuzzle(puzzle: ArrayList<List<Location>>, path: Stack<Location>, fullyE
 fun exploreAll(puzzle: ArrayList<List<Location>>, path: Stack<Location>, fullyExplored: ArrayList<Location>){
 	// get all possible destinations from the current cell (the one on top of the path stack)
 	val destinations = getDestinations(puzzle, path.peek(), fullyExplored)
+	// if there is nowhere to go from the current location, backtrack...
 	if(destinations.isEmpty()){
-		// if there is nowhere to go from the current location, backtrack...
+		// note: this needs to be "return"ed as it will prevent the below branches
+		// from being executed
 		return backtrack(puzzle, path, fullyExplored)
 	}
 	// explore each destination
 	while(!destinations.isEmpty()){
 		val nextRoute = destinations.pop()
+		// if the location hasn't been explored yet, add it to the path and proceed exploring
 		if (!path.toList().contains(nextRoute)){
-			// if the location hasn't been explored yet, add it to the path and proceed exploring
+			// note: as above this needs to "return"ed
 			path.push(nextRoute)
 			return solvePuzzle(puzzle, path, fullyExplored)
 		}
 	}
-	// (NOTE: quite curiously if we never return the value of the function
-	// whenever it's called this block of code will add to the fully explored list
-	// while the puzzled is being explored above!!! concurrency for free!!!)
+	// if none of the destinations turned out to be successful backtrack...
 	if(!path.isEmpty()){
-		// if none of the destinations turned out to be successful backtrack...
+		// note: this doesn't need to "return"ed as it is the last branch
+		// it will recursively call the solvePuzzle method and keepp the search going
 		backtrack(puzzle, path, fullyExplored)
 	}
 }
 
-/* marks the current location ans fully explored (dead end) and goes back to the previous one to try alternative routes */
+/* marks the current location and fully explored (dead end) and goes back to the previous one to try alternative routes */
 fun backtrack(puzzle: ArrayList<List<Location>>, path: Stack<Location>, fullyExplored: ArrayList<Location>){
 	// mark the current location (top of the stack) as fully explored since we can't go anywhere else
 	val explored = path.pop()
