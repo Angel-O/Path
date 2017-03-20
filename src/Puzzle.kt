@@ -14,8 +14,8 @@ fun main(args: Array<String>) {
 	}
 
 	// creates a matrix containing each location
-	val puzzle = createMatrix(file) //File("/Users/specs/git/Path/src/puzzle.txt")
-	// create the stack that will contain the path that silves the puzzle
+	val puzzle = createMatrix(file)
+	// create the stack that will contain the path that solves the puzzle
 	// and add the starting point (first top left corner of the puzzle)
 	val path = Stack<Location>()
 	path.push(puzzle[0][0])
@@ -78,16 +78,19 @@ fun exploreAll(puzzle: ArrayList<List<Location>>, path: Stack<Location>, fullyEx
 	while(!destinations.isEmpty()){
 		val nextRoute = destinations.pop()
 		// if the location hasn't been explored yet, add it to the path and proceed exploring
+		// note: since any solution that passes through the same location more than once will be a superset
+		// of any "minimal solution" (thorugh that same location) checking that the current path
+		// does not contain the next location is more than enough
 		if (!path.toList().contains(nextRoute)){
-			// note: as above this needs to "return"ed
+			// note: as above this needs to be "return"ed
 			path.push(nextRoute)
 			return solvePuzzle(puzzle, path, fullyExplored)
 		}
 	}
 	// if none of the destinations turned out to be successful backtrack...
 	if(!path.isEmpty()){
-		// note: this doesn't need to "return"ed as it is the last branch
-		// it will recursively call the solvePuzzle method and keepp the search going
+		// note: this doesn't need to be "return"ed since it is the last branch.
+		// (it will recursively call the solvePuzzle method and keepp the search going)
 		backtrack(puzzle, path, fullyExplored)
 	}
 }
@@ -117,7 +120,7 @@ fun getDestinations(matrix: ArrayList<List<Location>>, currentLocation: Location
 			createLocation(row, col - range, matrix), // left
 			createLocation(row - range, col, matrix), // top
 			createLocation(row + range, col, matrix)) // bottom
-			.filter({it != null // ignore null locations (the ones that fall out of the puzzle's boudaries)
+			.filter({it != null // ignore null locations (the ones that fall out the puzzle's boundaries)
 					&& (it.range != 0) // ignore destinations that would get us stuck
 					&& it.range < matrix.size // ignore locations that would certainly lead to invalid locations outside the matrix
 					&& !fullyExplored.contains(it)})) // ignore already visited locations leading to nowhere
@@ -137,7 +140,7 @@ fun createLocation(row: Int, col: Int, matrix: ArrayList<List<Location>>): Locat
 					row, // valid row coordinate
 					col, // valid column coordinate
 					// if it's the goal cell create a location data class with a valid range so that it won't be seen as an invalid location
-					if (row == puzzleSize - 1 && col == puzzleSize -1) 1 else matrix[row][col].range)
+					if (row == puzzleSize - 1 && col == puzzleSize - 1) 1 else matrix[row][col].range)
 		}
 		else -> location = null
 	}
