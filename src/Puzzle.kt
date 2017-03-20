@@ -125,7 +125,7 @@ fun getDestinations(matrix: ArrayList<List<Location>>, currentLocation: Location
 	return destinations
 }
 
-/* returns a valid coordinate if in range otherwise a null value */
+/* returns a Location data class if the coordinates are valid otherwise a null value */
 fun createLocation(row: Int, col: Int, matrix: ArrayList<List<Location>>): Location?{
 	val puzzleSize = matrix.size
 	var location: Location?
@@ -144,7 +144,7 @@ fun createLocation(row: Int, col: Int, matrix: ArrayList<List<Location>>): Locat
 	return location
 }
 
-/* checks if the coordinate is withing the puzzle borders */
+/* checks if the coordinate is within the puzzle borders */
 fun inRange(coord: Int, size: Int): Boolean{
 	return coord >= 0 && coord < size
 }
